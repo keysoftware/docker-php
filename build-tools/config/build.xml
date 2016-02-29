@@ -1,0 +1,113 @@
+<?xml version="1.0"?>
+<project name="PHP Web Application" default="build" basedir="." description="Default Phing buildfile.">
+    <!-- Properties -->
+    <property name="appdir" value="/srv/www/webapp"/>
+    <property name="builddir" value="${appdir}/build"/>
+    <property name="srcdir" value="${appdir}/src"/>
+    <property name="testdir" value="${appdir}/tests"/>
+    <property name="phpunitxml" value="${appdir}/phpunit.xml.dist"/>
+    <property name="phpmdxml" value="phpmd.xml.dist"/>
+
+    <!-- prepare -->
+    <target name="prepare">
+        <echo message="Prepare build directory, and its subdirectories."/>
+        <mkdir dir="${builddir}/apigen"/>
+        <mkdir dir="${builddir}/pdepend"/>
+        <mkdir dir="${builddir}/phpcs"/>
+        <mkdir dir="${builddir}/phpcpd"/>
+        <mkdir dir="${builddir}/phpdoc"/>
+        <mkdir dir="${builddir}/phpdox"/>
+        <mkdir dir="${builddir}/phploc"/>
+        <mkdir dir="${builddir}/pmd"/>
+        <mkdir dir="${builddir}/phpmetrics"/>
+    </target>
+    
+    <!-- phpunit -->
+    <target name="phpunit">
+        <exec executable="phpunit">
+            <arg value="-c" /> 
+            <arg path="${phpunitxml}" />
+        </exec>
+    </target>
+
+    <!-- pdepend -->
+    <target name="pdepend">
+        <exec executable="pdepend">
+            <arg value="--jdepend-xml=${builddir}/pdepend/jdepend.xml"/>
+            <arg value="--jdepend-chart=${builddir}/pdepend/dependencies.svg"/>
+            <arg value="--overview-pyramid=${builddir}/pdepend/overview-pyramid.svg"/>
+            <arg path="${srcdir}"/>
+        </exec>
+    </target>
+
+    <!-- phpmd -->
+    <target name="phpmd">
+        <exec executable="phpmd">
+            <arg value="text"/>
+            <arg value="${phpmdxml}"/>
+            <arg value="--reportfile"/>
+            <arg value="${builddir}/pmd/pmd.xml"/>
+            <arg path="${srcdir}"/>
+        </exec>
+    </target>
+
+    <!-- phpcs -->
+    <target name="phpcs">
+        <exec executable="phpcs">
+            <arg value="--report=checkstyle"/>
+            <arg value="--report-file=${builddir}/phpcs/checkstyle.xml"/>
+            <arg path="${srcdir}"/>
+        </exec>
+    </target>
+
+    <!-- phpcpd -->
+    <target name="phpcpd">
+        <exec executable="phpcpd">
+            <arg value="--log-pmd" />
+            <arg value="${builddir}/phpcpd/pmd-cpd.xml"/>
+            <arg path="${srcdir}"/>
+        </exec>
+    </target>
+
+    <!-- phploc -->
+    <target name="phploc">
+        <exec executable="phploc">
+            <arg value="--log-csv"/>
+            <arg value="${builddir}/phploc/phploc.csv"/>
+            <arg path="${srcdir}"/>
+        </exec>
+    </target>
+
+    <!-- phpmetrics -->
+    <target name="phpmetrics">
+        <exec executable="phpmetrics">
+            <arg line="--report-html=${builddir}/phpmetrics/report.html --report-xml=${builddir}/phpmetrics/report.xml --violations-xml=${builddir}/phpmetrics/violations.xml --report-csv=${builddir}/phpmetrics/report.csv --report-json=${builddir}/phpmetrics/report.json --chart-bubbles=${builddir}/phpmetrics/chart.svg"/>
+            <arg path="${srcdir}"/>
+        </exec>
+    </target>
+
+    <!-- phpdoc -->
+    <target name="phpdoc">
+        <exec executable="phpdoc">
+            <arg line="-d '${srcdir}' -t '${builddir}/phpdoc' --title='Tempo' "/>
+        </exec>
+    </target>
+
+    <!-- apigen -->
+    <target name="apigen">
+        <exec executable="apigen">
+            <arg line="generate -s '${srcdir}' -d '${builddir}/apigen'"/>
+        </exec>
+    </target>
+
+    <!-- build -->
+    <target name="build" depends="clean,prepare,phpunit,pdepend,phpmd,phpcs,phpcpd,phploc,phpmetrics,phpdoc,apigen">
+        <echo msg="Copying files..." />
+    </target>
+
+    <!-- clean -->
+    <target name="clean">
+        <echo msg="Cleaning build artifacts..."/>
+        <delete dir="${builddir}"/>
+    </target>
+</project>
