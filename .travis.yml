@@ -1,0 +1,18 @@
+sudo: required
+
+language: ruby
+
+services:
+  - docker
+
+env:
+  - VERSION=build-tools
+  - VERSION=cli
+  - VERSION=development
+  - VERSION=fpm
+
+script:
+  - cd $VERSION && make
+  - docker images
+  - make run
+  - docker ps -a
